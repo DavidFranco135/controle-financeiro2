@@ -1,567 +1,155 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sítio Escola de Cura - Financeiro</title>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-      body { font-family: 'Inter', sans-serif; }
-      .glass-effect {
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-      }
-      .card-hover {
-        transition: all 0.3s ease;
-      }
-      .card-hover:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-      }
-      .animate-fade-in {
-        animation: fadeIn 0.5s ease-in;
-      }
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      .scrollbar-custom::-webkit-scrollbar {
-        width: 8px;
-      }
-      .scrollbar-custom::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-      }
-      .scrollbar-custom::-webkit-scrollbar-thumb {
-        background: #10b981;
-        border-radius: 10px;
-      }
-      .scrollbar-custom::-webkit-scrollbar-thumb:hover {
-        background: #059669;
-      }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sítio Escola de Cura - Financeiro</title>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+<style>
+body { font-family: Inter, sans-serif; }
+.glass-effect { background: rgba(255,255,255,.9); backdrop-filter: blur(10px); }
+</style>
 </head>
+
 <body class="bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50">
-    <div id="root"></div>
+<div id="root"></div>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-      import { getFirestore, collection, addDoc, deleteDoc, doc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
-      
-      const firebaseConfig = {
-        apiKey: "AIzaSyDla38A4jZw0m8P1CuwIny1Hx4PuFwFBpo",
-        authDomain: "controle-financeiro-sitio.firebaseapp.com",
-        projectId: "controle-financeiro-sitio",
-        storageBucket: "controle-financeiro-sitio.firebasestorage.app",
-        messagingSenderId: "687439020294",
-        appId: "1:687439020294:web:5835d3db4e70e3e80b5e87"
-      };
-      
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
-      
-      window.firebaseDB = db;
-      window.firebaseUtils = { collection, addDoc, deleteDoc, doc, getDocs, query, orderBy };
-    </script>
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getFirestore, collection, addDoc, deleteDoc, doc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
-        
-        // Ícones
-        const DollarSign = ({className = "w-6 h-6"}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
-        const TrendingUp = ({className = "w-6 h-6"}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>;
-        const TrendingDown = ({className = "w-6 h-6"}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" /></svg>;
-        const Calendar = ({className = "w-5 h-5"}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
-        const Plus = ({className = "w-5 h-5"}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>;
-        const Trash2 = ({className = "w-5 h-5"}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>;
-        const Download = ({className = "w-5 h-5"}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
-        const RefreshCw = ({className = "w-5 h-5"}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>;
-        const Sparkles = ({className = "w-6 h-6"}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>;
+const firebaseConfig = {
+  apiKey: "AIzaSyDla38A4jZw0m8P1CuwIny1Hx4PuFwFBpo",
+  authDomain: "controle-financeiro-sitio.firebaseapp.com",
+  projectId: "controle-financeiro-sitio",
+  storageBucket: "controle-financeiro-sitio.appspot.com",
+  messagingSenderId: "687439020294",
+  appId: "1:687439020294:web:5835d3db4e70e3e80b5e87"
+};
 
-        function SistemaFinanceiro() {
-          const [transacoes, setTransacoes] = useState([]);
-          const [descricao, setDescricao] = useState('');
-          const [valor, setValor] = useState('');
-          const [tipo, setTipo] = useState('entrada');
-          const [categoria, setCategoria] = useState('');
-          const [data, setData] = useState(new Date().toISOString().split('T')[0]);
-          const [mesSelecionado, setMesSelecionado] = useState(new Date().toISOString().slice(0, 7));
-          const [carregando, setCarregando] = useState(false);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-          const categoriasEntrada = ['Hospedagem', 'Eventos', 'Outros'];
-          const categoriasSaida = ['Gastos', 'Manutenção', 'Outros'];
+window.firebaseDB = db;
+window.firebaseUtils = { collection, addDoc, deleteDoc, doc, getDocs, query, orderBy };
+</script>
 
-          useEffect(() => {
-            carregarDados();
-          }, []);
+<script type="text/babel">
+const { useState, useEffect } = React;
 
-          const carregarDados = async () => {
-            setCarregando(true);
-            try {
-              const { collection, getDocs, query, orderBy } = window.firebaseUtils;
-              const q = query(collection(window.firebaseDB, 'transacoes'), orderBy('timestamp', 'desc'));
-              const querySnapshot = await getDocs(q);
-              
-              const dados = [];
-              querySnapshot.forEach((doc) => {
-                dados.push({ id: doc.id, ...doc.data() });
-              });
-              
-              setTransacoes(dados);
-            } catch (error) {
-              console.error('Erro ao carregar dados:', error);
-            } finally {
-              setCarregando(false);
-            }
-          };
+function SistemaFinanceiro(){
+  const [transacoes,setTransacoes] = useState([]);
+  const [descricao,setDescricao] = useState("");
+  const [valor,setValor] = useState("");
+  const [tipo,setTipo] = useState("entrada");
+  const [categoria,setCategoria] = useState("");
+  const [data,setData] = useState(new Date().toISOString().split("T")[0]);
+  const [mesSelecionado,setMesSelecionado] = useState(new Date().toISOString().slice(0,7));
+  const [carregando,setCarregando] = useState(false);
 
-          const adicionarTransacao = async () => {
-            if (!descricao || !valor || !categoria) {
-              alert('Preencha todos os campos!');
-              return;
-            }
+  const categoriasEntrada = ["Hospedagem","Eventos","Outros"];
+  const categoriasSaida = ["Gastos","Manutenção","Outros"];
 
-            setCarregando(true);
-            try {
-              const { collection, addDoc } = window.firebaseUtils;
-              
-              const novaTransacao = {
-                descricao,
-                valor: parseFloat(valor),
-                tipo,
-                categoria,
-                data,
-                timestamp: Date.now()
-              };
+  useEffect(()=>{ carregar(); },[]);
 
-              const docRef = await addDoc(collection(window.firebaseDB, 'transacoes'), novaTransacao);
-              
-              setTransacoes([{ id: docRef.id, ...novaTransacao }, ...transacoes]);
-              
-              setDescricao('');
-              setValor('');
-              setCategoria('');
-              setData(new Date().toISOString().split('T')[0]);
-            } catch (error) {
-              console.error('Erro ao adicionar:', error);
-              alert('Erro ao adicionar transação');
-            } finally {
-              setCarregando(false);
-            }
-          };
+  const carregar = async ()=>{
+    setCarregando(true);
+    const { collection,getDocs,query,orderBy } = window.firebaseUtils;
+    const q = query(collection(window.firebaseDB,"transacoes"),orderBy("timestamp","desc"));
+    const snap = await getDocs(q);
+    const dados=[];
+    snap.forEach(d=>dados.push({id:d.id,...d.data()}));
+    setTransacoes(dados);
+    setCarregando(false);
+  };
 
-          const removerTransacao = async (id) => {
-            if (!confirm('Tem certeza que deseja excluir esta transação?')) {
-              return;
-            }
+  const salvar = async ()=>{
+    if(!descricao||!valor||!categoria){ alert("Preencha tudo"); return; }
+    const { collection,addDoc } = window.firebaseUtils;
+    const nova={ descricao,valor:Number(valor),tipo,categoria,data,timestamp:Date.now() };
+    const ref = await addDoc(collection(window.firebaseDB,"transacoes"),nova);
+    setTransacoes([{id:ref.id,...nova},...transacoes]);
+    setDescricao(""); setValor(""); setCategoria("");
+  };
 
-            setCarregando(true);
-            try {
-              const { deleteDoc, doc } = window.firebaseUtils;
-              await deleteDoc(doc(window.firebaseDB, 'transacoes', id));
-              
-              setTransacoes(transacoes.filter(t => t.id !== id));
-            } catch (error) {
-              console.error('Erro ao remover:', error);
-              alert('Erro ao remover transação');
-            } finally {
-              setCarregando(false);
-            }
-          };
+  const remover = async(id)=>{
+    if(!confirm("Excluir?"))return;
+    const { deleteDoc,doc } = window.firebaseUtils;
+    await deleteDoc(doc(window.firebaseDB,"transacoes",id));
+    setTransacoes(transacoes.filter(t=>t.id!==id));
+  };
 
-          const exportarPDF = () => {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            const mesAno = obterMesAno(mesSelecionado);
-            
-            doc.setFontSize(18);
-            doc.setFont(undefined, 'bold');
-            doc.text('Sítio Escola de Cura', 105, 15, { align: 'center' });
-            
-            doc.setFontSize(14);
-            doc.text('Relatório Financeiro', 105, 23, { align: 'center' });
-            
-            doc.setFontSize(12);
-            doc.setFont(undefined, 'normal');
-            doc.text(mesAno, 105, 30, { align: 'center' });
-            
-            doc.setFontSize(11);
-            doc.setFont(undefined, 'bold');
-            doc.text('Resumo:', 14, 40);
-            
-            doc.setFont(undefined, 'normal');
-            doc.setTextColor(0, 128, 0);
-            doc.text(`Entradas: ${formatarMoeda(totalEntradas)}`, 14, 47);
-            
-            doc.setTextColor(220, 38, 38);
-            doc.text(`Saídas: ${formatarMoeda(totalSaidas)}`, 14, 54);
-            
-            doc.setTextColor(0, 0, 0);
-            doc.setFont(undefined, 'bold');
-            const corSaldo = saldo >= 0 ? [0, 128, 0] : [220, 38, 38];
-            doc.setTextColor(...corSaldo);
-            doc.text(`Saldo: ${formatarMoeda(saldo)}`, 14, 61);
-            
-            doc.setTextColor(0, 0, 0);
-            doc.setFont(undefined, 'normal');
-            
-            doc.setDrawColor(200, 200, 200);
-            doc.line(14, 66, 196, 66);
-            
-            const dadosTabela = transacoesFiltradas
-              .sort((a, b) => new Date(b.data) - new Date(a.data))
-              .map(t => [
-                new Date(t.data + 'T00:00:00').toLocaleDateString('pt-BR'),
-                t.tipo === 'entrada' ? 'Entrada' : 'Saída',
-                t.categoria,
-                t.descricao,
-                formatarMoeda(t.valor)
-              ]);
-            
-            doc.autoTable({
-              startY: 72,
-              head: [['Data', 'Tipo', 'Categoria', 'Descrição', 'Valor']],
-              body: dadosTabela,
-              theme: 'striped',
-              headStyles: {
-                fillColor: [34, 197, 94],
-                textColor: 255,
-                fontStyle: 'bold',
-                halign: 'center'
-              },
-              columnStyles: {
-                0: { cellWidth: 25, halign: 'center' },
-                1: { cellWidth: 25, halign: 'center' },
-                2: { cellWidth: 35, halign: 'left' },
-                3: { cellWidth: 70, halign: 'left' },
-                4: { cellWidth: 30, halign: 'right' }
-              },
-              styles: {
-                fontSize: 9,
-                cellPadding: 3
-              },
-              alternateRowStyles: {
-                fillColor: [245, 245, 245]
-              },
-              didParseCell: function(data) {
-                if (data.column.index === 1 && data.section === 'body') {
-                  if (data.cell.raw === 'Entrada') {
-                    data.cell.styles.textColor = [0, 128, 0];
-                    data.cell.styles.fontStyle = 'bold';
-                  } else {
-                    data.cell.styles.textColor = [220, 38, 38];
-                    data.cell.styles.fontStyle = 'bold';
-                  }
-                }
-                if (data.column.index === 4 && data.section === 'body') {
-                  const tipo = dadosTabela[data.row.index][1];
-                  if (tipo === 'Entrada') {
-                    data.cell.styles.textColor = [0, 128, 0];
-                    data.cell.styles.fontStyle = 'bold';
-                  } else {
-                    data.cell.styles.textColor = [220, 38, 38];
-                    data.cell.styles.fontStyle = 'bold';
-                  }
-                }
-              }
-            });
-            
-            const pageCount = doc.internal.getNumberOfPages();
-            for (let i = 1; i <= pageCount; i++) {
-              doc.setPage(i);
-              doc.setFontSize(8);
-              doc.setTextColor(128, 128, 128);
-              doc.text(
-                `Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`,
-                105,
-                doc.internal.pageSize.height - 10,
-                { align: 'center' }
-              );
-              doc.text(
-                `Página ${i} de ${pageCount}`,
-                196,
-                doc.internal.pageSize.height - 10,
-                { align: 'right' }
-              );
-            }
-            
-            doc.save(`Relatorio_${mesAno.replace(' ', '_')}.pdf`);
-          };
+  const filtradas = transacoes.filter(t=>t.data.startsWith(mesSelecionado));
+  const ordenar = lista => [...lista].sort((a,b)=>new Date(a.data)-new Date(b.data));
+  const entradas = ordenar(filtradas.filter(t=>t.tipo==="entrada"));
+  const saidas = ordenar(filtradas.filter(t=>t.tipo==="saida"));
 
-          const transacoesFiltradas = transacoes.filter(t => 
-            t.data.startsWith(mesSelecionado)
-          );
+  const totalEntradas = entradas.reduce((s,t)=>s+t.valor,0);
+  const totalSaidas = saidas.reduce((s,t)=>s+t.valor,0);
+  const saldo = totalEntradas-totalSaidas;
 
-          const totalEntradas = transacoesFiltradas
-            .filter(t => t.tipo === 'entrada')
-            .reduce((acc, t) => acc + t.valor, 0);
+  const moeda=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 
-          const totalSaidas = transacoesFiltradas
-            .filter(t => t.tipo === 'saida')
-            .reduce((acc, t) => acc + t.valor, 0);
+  return (
+  <div className="max-w-5xl mx-auto p-6 space-y-6">
+    <h1 className="text-3xl font-bold text-emerald-600">Financeiro - Sítio Escola de Cura</h1>
 
-          const saldo = totalEntradas - totalSaidas;
+    <div className="grid grid-cols-3 gap-4">
+      <div className="p-4 bg-white rounded-xl shadow">Entradas<br/><b>{moeda(totalEntradas)}</b></div>
+      <div className="p-4 bg-white rounded-xl shadow">Saídas<br/><b>{moeda(totalSaidas)}</b></div>
+      <div className="p-4 bg-white rounded-xl shadow">Saldo<br/><b>{moeda(saldo)}</b></div>
+    </div>
 
-          const formatarMoeda = (valor) => {
-            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-          };
+    <div className="bg-white p-6 rounded-xl shadow space-y-4">
+      <select value={tipo} onChange={e=>{setTipo(e.target.value);setCategoria("");}} className="w-full p-2 border rounded">
+        <option value="entrada">Entrada</option>
+        <option value="saida">Saída</option>
+      </select>
 
-          const obterMesAno = (mesAno) => {
-            const [ano, mes] = mesAno.split('-');
-            const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
-                           'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-            return `${meses[parseInt(mes) - 1]} ${ano}`;
-          };
+      <select value={categoria} onChange={e=>setCategoria(e.target.value)} className="w-full p-2 border rounded">
+        <option value="">Categoria</option>
+        {(tipo==="entrada"?categoriasEntrada:categoriasSaida).map(c=><option key={c}>{c}</option>)}
+      </select>
 
-          return (
-            <div className="min-h-screen p-4 md:p-8">
-              <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="glass-effect rounded-3xl shadow-2xl p-6 md:p-8 mb-6 animate-fade-in">
-                  <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg">
-                        <Sparkles className="w-8 h-8 text-white" />
-                      </div>
-                      <div>
-                        <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                          Sítio Escola de Cura
-                        </h1>
-                        <p className="text-gray-600 font-medium">Gestão Financeira</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={carregarDados}
-                      disabled={carregando}
-                      className="p-3 bg-white hover:bg-emerald-50 rounded-xl shadow-md hover:shadow-lg transition-all disabled:opacity-50 border border-emerald-200"
-                      title="Atualizar dados"
-                    >
-                      <RefreshCw className={`w-6 h-6 text-emerald-600 ${carregando ? 'animate-spin' : ''}`} />
-                    </button>
-                  </div>
-                </div>
+      <input placeholder="Descrição" value={descricao} onChange={e=>setDescricao(e.target.value)} className="w-full p-2 border rounded"/>
+      <input type="number" placeholder="Valor" value={valor} onChange={e=>setValor(e.target.value)} className="w-full p-2 border rounded"/>
+      <input type="date" value={data} onChange={e=>setData(e.target.value)} className="w-full p-2 border rounded"/>
 
-                {/* Cards de Resumo */}
-                <div className="grid md:grid-cols-3 gap-6 mb-6">
-                  <div className="glass-effect rounded-3xl shadow-xl p-6 card-hover animate-fade-in border-l-4 border-emerald-500">
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Entradas</span>
-                      <div className="p-2 bg-emerald-100 rounded-xl">
-                        <TrendingUp className="w-6 h-6 text-emerald-600" />
-                      </div>
-                    </div>
-                    <div className="text-3xl font-bold text-emerald-600">{formatarMoeda(totalEntradas)}</div>
-                  </div>
+      <button onClick={salvar} className="w-full bg-emerald-600 text-white p-3 rounded">Salvar</button>
+    </div>
 
-                  <div className="glass-effect rounded-3xl shadow-xl p-6 card-hover animate-fade-in border-l-4 border-red-500">
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Saídas</span>
-                      <div className="p-2 bg-red-100 rounded-xl">
-                        <TrendingDown className="w-6 h-6 text-red-600" />
-                      </div>
-                    </div>
-                    <div className="text-3xl font-bold text-red-600">{formatarMoeda(totalSaidas)}</div>
-                  </div>
+    <div className="bg-white p-6 rounded-xl shadow">
+      <input type="month" value={mesSelecionado} onChange={e=>setMesSelecionado(e.target.value)} className="mb-4 p-2 border rounded"/>
 
-                  <div className={`glass-effect rounded-3xl shadow-xl p-6 card-hover animate-fade-in border-l-4 ${saldo >= 0 ? 'border-blue-500' : 'border-orange-500'}`}>
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Saldo</span>
-                      <div className={`p-2 ${saldo >= 0 ? 'bg-blue-100' : 'bg-orange-100'} rounded-xl`}>
-                        <DollarSign className={`w-6 h-6 ${saldo >= 0 ? 'text-blue-600' : 'text-orange-600'}`} />
-                      </div>
-                    </div>
-                    <div className={`text-3xl font-bold ${saldo >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
-                      {formatarMoeda(saldo)}
-                    </div>
-                  </div>
-                </div>
+      <h2 className="text-xl font-bold text-emerald-600 mb-2">Entradas</h2>
+      {entradas.map(t=>(
+        <div key={t.id} className="flex justify-between border-b py-2">
+          <span>{t.data} - {t.descricao}</span>
+          <span className="text-emerald-600">{moeda(t.valor)}</span>
+        </div>
+      ))}
 
-                {/* Formulário */}
-                <div className="glass-effect rounded-3xl shadow-xl p-6 md:p-8 mb-6 animate-fade-in">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl">
-                      <Plus className="w-5 h-5 text-white" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-gray-800">Nova Transação</h2>
-                  </div>
-                  
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Tipo</label>
-                      <select 
-                        value={tipo}
-                        onChange={(e) => {
-                          setTipo(e.target.value);
-                          setCategoria('');
-                        }}
-                        disabled={carregando}
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all disabled:opacity-50 bg-white"
-                      >
-                        <option value="entrada">💰 Entrada</option>
-                        <option value="saida">💸 Saída</option>
-                      </select>
-                    </div>
+      <h2 className="text-xl font-bold text-red-600 mt-6 mb-2">Saídas</h2>
+      {saidas.map(t=>(
+        <div key={t.id} className="flex justify-between border-b py-2">
+          <span>{t.data} - {t.descricao}</span>
+          <span className="text-red-600">{moeda(t.valor)}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+  );
+}
 
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Categoria</label>
-                      <select 
-                        value={categoria}
-                        onChange={(e) => setCategoria(e.target.value)}
-                        disabled={carregando}
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all disabled:opacity-50 bg-white"
-                      >
-                        <option value="">Selecione...</option>
-                        {(tipo === 'entrada' ? categoriasEntrada : categoriasSaida).map(cat => (
-                          <option key={cat} value={cat}>{cat}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Descrição</label>
-                      <input
-                        type="text"
-                        value={descricao}
-                        onChange={(e) => setDescricao(e.target.value)}
-                        placeholder="Ex: Hospedagem família Silva"
-                        disabled={carregando}
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all disabled:opacity-50"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Valor (R$)</label>
-                      <input
-                        type="number"
-                        value={valor}
-                        onChange={(e) => setValor(e.target.value)}
-                        placeholder="0,00"
-                        step="0.01"
-                        disabled={carregando}
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all disabled:opacity-50"
-                      />
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Data</label>
-                      <input
-                        type="date"
-                        value={data}
-                        onChange={(e) => setData(e.target.value)}
-                        disabled={carregando}
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all disabled:opacity-50"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={adicionarTransacao}
-                    disabled={carregando}
-                    className="w-full mt-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
-                  >
-                    <Plus className="w-6 h-6" />
-                    {carregando ? 'Salvando...' : 'Adicionar Transação'}
-                  </button>
-                </div>
-
-                {/* Relatório */}
-                <div className="glass-effect rounded-3xl shadow-xl p-6 md:p-8 animate-fade-in">
-                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
-                        <Calendar className="w-5 h-5 text-white" />
-                      </div>
-                      <h2 className="text-2xl font-bold text-gray-800">Relatório Mensal</h2>
-                    </div>
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full md:w-auto">
-                      {transacoesFiltradas.length > 0 && (
-                        <button
-                          onClick={exportarPDF}
-                          className="w-full sm:w-auto px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg"
-                        >
-                          <Download className="w-5 h-5" />
-                          Exportar PDF
-                        </button>
-                      )}
-                      <div className="flex items-center gap-2 w-full sm:w-auto">
-                        <input
-                          type="month"
-                          value={mesSelecionado}
-                          onChange={(e) => setMesSelecionado(e.target.value)}
-                          className="w-full sm:w-auto px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all font-medium"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mb-6 text-center">
-                    <span className="inline-block px-6 py-2 bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-800 rounded-full text-lg font-bold">
-                      {obterMesAno(mesSelecionado)}
-                    </span>
-                  </div>
-
-                  {transacoesFiltradas.length === 0 ? (
-                    <div className="text-center py-16">
-                      <div className="inline-block p-4 bg-gray-100 rounded-full mb-4">
-                        <Calendar className="w-12 h-12 text-gray-400" />
-                      </div>
-                      <p className="text-gray-500 text-lg">Nenhuma transação neste mês</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4 max-h-[600px] overflow-y-auto scrollbar-custom pr-2">
-                      {transacoesFiltradas.sort((a, b) => new Date(b.data) - new Date(a.data)).map((t, index) => (
-                        <div key={t.id} className="glass-effect rounded-2xl p-5 card-hover border-l-4" style={{borderLeftColor: t.tipo === 'entrada' ? '#10b981' : '#ef4444', animationDelay: `${index * 0.05}s`}}>
-                          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                            <div className="flex-1 w-full">
-                              <div className="flex flex-wrap items-center gap-3 mb-3">
-                                <span className={`px-4 py-1.5 rounded-full text-xs font-bold ${
-                                  t.tipo === 'entrada' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
-                                }`}>
-                                  {t.tipo === 'entrada' ? '💰 Entrada' : '💸 Saída'}
-                                </span>
-                                <span className="px-4 py-1.5 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">
-                                  {t.categoria}
-                                </span>
-                                <span className="text-sm text-gray-500 font-medium">
-                                  📅 {new Date(t.data + 'T00:00:00').toLocaleDateString('pt-BR')}
-                                </span>
-                              </div>
-                              <div className="font-semibold text-gray-800 text-lg">{t.descricao}</div>
-                            </div>
-                            <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
-                              <div className={`text-2xl font-bold ${t.tipo === 'entrada' ? 'text-emerald-600' : 'text-red-600'}`}>
-                                {t.tipo === 'entrada' ? '+' : '-'} {formatarMoeda(t.valor)}
-                              </div>
-                              <button
-                                onClick={() => removerTransacao(t.id)}
-                                disabled={carregando}
-                                className="p-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-all disabled:opacity-50 hover:scale-110"
-                                title="Excluir transação"
-                              >
-                                <Trash2 className="w-5 h-5" />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-        }
-
-        ReactDOM.render(<SistemaFinanceiro />, document.getElementById('root'));
-    </script>
+ReactDOM.render(<SistemaFinanceiro/>,document.getElementById("root"));
+</script>
 </body>
 </html>
