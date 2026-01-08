@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DollarSign, TrendingUp, TrendingDown, Calendar, Plus, Trash2, Filter } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, Calendar, Plus, Trash2, Download } from 'lucide-react';
 
 export default function SistemaFinanceiro() {
   const [transacoes, setTransacoes] = useState([]);
@@ -17,22 +17,23 @@ export default function SistemaFinanceiro() {
     carregarDados();
   }, []);
 
-  const carregarDados = async () => {
+  const carregarDados = () => {
     try {
-      const result = await window.storage.get('transacoes-sitio');
-      if (result) {
-        setTransacoes(JSON.parse(result.value));
+      const dados = localStorage.getItem('transacoes-sitio');
+      if (dados) {
+        setTransacoes(JSON.parse(dados));
       }
     } catch (error) {
       console.log('Nenhum dado anterior encontrado');
     }
   };
 
-  const salvarDados = async (novasTransacoes) => {
+  const salvarDados = (novasTransacoes) => {
     try {
-      await window.storage.set('transacoes-sitio', JSON.stringify(novasTransacoes));
+      localStorage.setItem('transacoes-sitio', JSON.stringify(novasTransacoes));
     } catch (error) {
       console.error('Erro ao salvar:', error);
+      alert('Erro ao salvar os dados!');
     }
   };
 
@@ -62,9 +63,32 @@ export default function SistemaFinanceiro() {
   };
 
   const removerTransacao = (id) => {
-    const novasTransacoes = transacoes.filter(t => t.id !== id);
-    setTransacoes(novasTransacoes);
-    salvarDados(novasTransacoes);
+    if (confirm('Tem certeza que deseja excluir esta transação?')) {
+      const novasTransacoes = transacoes.filter(t => t.id !== id);
+      setTransacoes(novasTransacoes);
+      salvarDados(novasTransacoes);
+    }
+  };
+
+  const exportarCSV = () => {
+    const dados = transacoesFiltradas.map(t => ({
+      Data: new Date(t.data + 'T00:00:00').toLocaleDateString('pt-BR'),
+      Tipo: t.tipo === 'entrada' ? 'Entrada' : 'Saída',
+      Categoria: t.categoria,
+      Descrição: t.descricao,
+      Valor: t.valor.toFixed(2)
+    }));
+
+    const csv = [
+      Object.keys(dados[0]).join(','),
+      ...dados.map(row => Object.values(row).join(','))
+    ].join('\n');
+
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `relatorio_${obterMesAno(mesSelecionado).replace(' ', '_')}.csv`;
+    link.click();
   };
 
   const transacoesFiltradas = transacoes.filter(t => 
@@ -206,16 +230,27 @@ export default function SistemaFinanceiro() {
           </div>
 
           <div className="bg-gray-50 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
               <h2 className="text-xl font-bold text-gray-800">Relatório Mensal</h2>
-              <div className="flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-gray-600" />
-                <input
-                  type="month"
-                  value={mesSelecionado}
-                  onChange={(e) => setMesSelecionado(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
+              <div className="flex items-center gap-3">
+                {transacoesFiltradas.length > 0 && (
+                  <button
+                    onClick={exportarCSV}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 transition-colors"
+                  >
+                    <Download className="w-4 h-4" />
+                    Exportar CSV
+                  </button>
+                )}
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-gray-600" />
+                  <input
+                    type="month"
+                    value={mesSelecionado}
+                    onChange={(e) => setMesSelecionado(e.target.value)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
               </div>
             </div>
 
