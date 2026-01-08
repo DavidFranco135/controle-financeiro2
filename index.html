@@ -8,6 +8,8 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
     <div id="root"></div>
@@ -142,25 +144,133 @@
             }
           };
 
-          const exportarCSV = () => {
-            const dados = transacoesFiltradas.map(t => ({
-              Data: new Date(t.data + 'T00:00:00').toLocaleDateString('pt-BR'),
-              Tipo: t.tipo === 'entrada' ? 'Entrada' : 'Saída',
-              Categoria: t.categoria,
-              Descrição: t.descricao,
-              Valor: t.valor.toFixed(2)
-            }));
-
-            const csv = [
-              Object.keys(dados[0]).join(','),
-              ...dados.map(row => Object.values(row).join(','))
-            ].join('\n');
-
-            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `relatorio_${obterMesAno(mesSelecionado).replace(' ', '_')}.csv`;
-            link.click();
+          const exportarPDF = () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Configurações
+            const mesAno = obterMesAno(mesSelecionado);
+            
+            // Cabeçalho
+            doc.setFontSize(18);
+            doc.setFont(undefined, 'bold');
+            doc.text('Sítio Escola de Cura', 105, 15, { align: 'center' });
+            
+            doc.setFontSize(14);
+            doc.text('Relatório Financeiro', 105, 23, { align: 'center' });
+            
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.text(mesAno, 105, 30, { align: 'center' });
+            
+            // Resumo Financeiro
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'bold');
+            doc.text('Resumo:', 14, 40);
+            
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(0, 128, 0);
+            doc.text(`Entradas: ${formatarMoeda(totalEntradas)}`, 14, 47);
+            
+            doc.setTextColor(220, 38, 38);
+            doc.text(`Saídas: ${formatarMoeda(totalSaidas)}`, 14, 54);
+            
+            doc.setTextColor(0, 0, 0);
+            doc.setFont(undefined, 'bold');
+            const corSaldo = saldo >= 0 ? [0, 128, 0] : [220, 38, 38];
+            doc.setTextColor(...corSaldo);
+            doc.text(`Saldo: ${formatarMoeda(saldo)}`, 14, 61);
+            
+            doc.setTextColor(0, 0, 0);
+            doc.setFont(undefined, 'normal');
+            
+            // Linha separadora
+            doc.setDrawColor(200, 200, 200);
+            doc.line(14, 66, 196, 66);
+            
+            // Tabela de Transações
+            const dadosTabela = transacoesFiltradas
+              .sort((a, b) => new Date(b.data) - new Date(a.data))
+              .map(t => [
+                new Date(t.data + 'T00:00:00').toLocaleDateString('pt-BR'),
+                t.tipo === 'entrada' ? 'Entrada' : 'Saída',
+                t.categoria,
+                t.descricao,
+                formatarMoeda(t.valor)
+              ]);
+            
+            doc.autoTable({
+              startY: 72,
+              head: [['Data', 'Tipo', 'Categoria', 'Descrição', 'Valor']],
+              body: dadosTabela,
+              theme: 'striped',
+              headStyles: {
+                fillColor: [34, 197, 94],
+                textColor: 255,
+                fontStyle: 'bold',
+                halign: 'center'
+              },
+              columnStyles: {
+                0: { cellWidth: 25, halign: 'center' },
+                1: { cellWidth: 25, halign: 'center' },
+                2: { cellWidth: 35, halign: 'left' },
+                3: { cellWidth: 70, halign: 'left' },
+                4: { cellWidth: 30, halign: 'right' }
+              },
+              styles: {
+                fontSize: 9,
+                cellPadding: 3
+              },
+              alternateRowStyles: {
+                fillColor: [245, 245, 245]
+              },
+              didParseCell: function(data) {
+                // Colorir coluna Tipo
+                if (data.column.index === 1 && data.section === 'body') {
+                  if (data.cell.raw === 'Entrada') {
+                    data.cell.styles.textColor = [0, 128, 0];
+                    data.cell.styles.fontStyle = 'bold';
+                  } else {
+                    data.cell.styles.textColor = [220, 38, 38];
+                    data.cell.styles.fontStyle = 'bold';
+                  }
+                }
+                // Colorir coluna Valor
+                if (data.column.index === 4 && data.section === 'body') {
+                  const tipo = dadosTabela[data.row.index][1];
+                  if (tipo === 'Entrada') {
+                    data.cell.styles.textColor = [0, 128, 0];
+                    data.cell.styles.fontStyle = 'bold';
+                  } else {
+                    data.cell.styles.textColor = [220, 38, 38];
+                    data.cell.styles.fontStyle = 'bold';
+                  }
+                }
+              }
+            });
+            
+            // Rodapé
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+              doc.setPage(i);
+              doc.setFontSize(8);
+              doc.setTextColor(128, 128, 128);
+              doc.text(
+                `Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`,
+                105,
+                doc.internal.pageSize.height - 10,
+                { align: 'center' }
+              );
+              doc.text(
+                `Página ${i} de ${pageCount}`,
+                196,
+                doc.internal.pageSize.height - 10,
+                { align: 'right' }
+              );
+            }
+            
+            // Download
+            doc.save(`Relatorio_${mesAno.replace(' ', '_')}.pdf`);
           };
 
           const transacoesFiltradas = transacoes.filter(t => 
@@ -329,11 +439,11 @@
                       <div className="flex items-center gap-3">
                         {transacoesFiltradas.length > 0 && (
                           <button
-                            onClick={exportarCSV}
+                            onClick={exportarPDF}
                             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 transition-colors"
                           >
                             <Download />
-                            Exportar CSV
+                            Exportar PDF
                           </button>
                         )}
                         <div className="flex items-center gap-2">
