@@ -1,301 +1,329 @@
-import React, { useState, useEffect } from 'react';
-import { DollarSign, TrendingUp, TrendingDown, Calendar, Plus, Trash2, Download } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sítio Escola de Cura - Financeiro</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
 
-export default function SistemaFinanceiro() {
-  const [transacoes, setTransacoes] = useState([]);
-  const [descricao, setDescricao] = useState('');
-  const [valor, setValor] = useState('');
-  const [tipo, setTipo] = useState('entrada');
-  const [categoria, setCategoria] = useState('');
-  const [data, setData] = useState(new Date().toISOString().split('T')[0]);
-  const [mesSelecionado, setMesSelecionado] = useState(new Date().toISOString().slice(0, 7));
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        
+        // Ícones simplificados
+        const DollarSign = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+        const TrendingUp = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>;
+        const TrendingDown = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" /></svg>;
+        const Calendar = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
+        const Plus = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>;
+        const Trash2 = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>;
+        const Download = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
 
-  const categoriasEntrada = ['Agendamento Cliente', 'Outros'];
-  const categoriasSaida = ['Produtos Piscina', 'Gasolina Roçadeira', 'Contas', 'Manutenção', 'Alimentação', 'Outros'];
+        function SistemaFinanceiro() {
+          const [transacoes, setTransacoes] = useState([]);
+          const [descricao, setDescricao] = useState('');
+          const [valor, setValor] = useState('');
+          const [tipo, setTipo] = useState('entrada');
+          const [categoria, setCategoria] = useState('');
+          const [data, setData] = useState(new Date().toISOString().split('T')[0]);
+          const [mesSelecionado, setMesSelecionado] = useState(new Date().toISOString().slice(0, 7));
 
-  useEffect(() => {
-    carregarDados();
-  }, []);
+          const categoriasEntrada = ['Agendamento Cliente', 'Outros'];
+          const categoriasSaida = ['Produtos Piscina', 'Gasolina Roçadeira', 'Contas', 'Manutenção', 'Alimentação', 'Outros'];
 
-  const carregarDados = () => {
-    try {
-      const dados = localStorage.getItem('transacoes-sitio');
-      if (dados) {
-        setTransacoes(JSON.parse(dados));
-      }
-    } catch (error) {
-      console.log('Nenhum dado anterior encontrado');
-    }
-  };
+          useEffect(() => {
+            carregarDados();
+          }, []);
 
-  const salvarDados = (novasTransacoes) => {
-    try {
-      localStorage.setItem('transacoes-sitio', JSON.stringify(novasTransacoes));
-    } catch (error) {
-      console.error('Erro ao salvar:', error);
-      alert('Erro ao salvar os dados!');
-    }
-  };
+          const carregarDados = () => {
+            try {
+              const dados = localStorage.getItem('transacoes-sitio');
+              if (dados) {
+                setTransacoes(JSON.parse(dados));
+              }
+            } catch (error) {
+              console.log('Nenhum dado anterior encontrado');
+            }
+          };
 
-  const adicionarTransacao = () => {
-    if (!descricao || !valor || !categoria) {
-      alert('Preencha todos os campos!');
-      return;
-    }
+          const salvarDados = (novasTransacoes) => {
+            try {
+              localStorage.setItem('transacoes-sitio', JSON.stringify(novasTransacoes));
+            } catch (error) {
+              console.error('Erro ao salvar:', error);
+              alert('Erro ao salvar os dados!');
+            }
+          };
 
-    const novaTransacao = {
-      id: Date.now(),
-      descricao,
-      valor: parseFloat(valor),
-      tipo,
-      categoria,
-      data
-    };
+          const adicionarTransacao = () => {
+            if (!descricao || !valor || !categoria) {
+              alert('Preencha todos os campos!');
+              return;
+            }
 
-    const novasTransacoes = [...transacoes, novaTransacao];
-    setTransacoes(novasTransacoes);
-    salvarDados(novasTransacoes);
+            const novaTransacao = {
+              id: Date.now(),
+              descricao,
+              valor: parseFloat(valor),
+              tipo,
+              categoria,
+              data
+            };
 
-    setDescricao('');
-    setValor('');
-    setCategoria('');
-    setData(new Date().toISOString().split('T')[0]);
-  };
+            const novasTransacoes = [...transacoes, novaTransacao];
+            setTransacoes(novasTransacoes);
+            salvarDados(novasTransacoes);
 
-  const removerTransacao = (id) => {
-    if (confirm('Tem certeza que deseja excluir esta transação?')) {
-      const novasTransacoes = transacoes.filter(t => t.id !== id);
-      setTransacoes(novasTransacoes);
-      salvarDados(novasTransacoes);
-    }
-  };
+            setDescricao('');
+            setValor('');
+            setCategoria('');
+            setData(new Date().toISOString().split('T')[0]);
+          };
 
-  const exportarCSV = () => {
-    const dados = transacoesFiltradas.map(t => ({
-      Data: new Date(t.data + 'T00:00:00').toLocaleDateString('pt-BR'),
-      Tipo: t.tipo === 'entrada' ? 'Entrada' : 'Saída',
-      Categoria: t.categoria,
-      Descrição: t.descricao,
-      Valor: t.valor.toFixed(2)
-    }));
+          const removerTransacao = (id) => {
+            if (confirm('Tem certeza que deseja excluir esta transação?')) {
+              const novasTransacoes = transacoes.filter(t => t.id !== id);
+              setTransacoes(novasTransacoes);
+              salvarDados(novasTransacoes);
+            }
+          };
 
-    const csv = [
-      Object.keys(dados[0]).join(','),
-      ...dados.map(row => Object.values(row).join(','))
-    ].join('\n');
+          const exportarCSV = () => {
+            const dados = transacoesFiltradas.map(t => ({
+              Data: new Date(t.data + 'T00:00:00').toLocaleDateString('pt-BR'),
+              Tipo: t.tipo === 'entrada' ? 'Entrada' : 'Saída',
+              Categoria: t.categoria,
+              Descrição: t.descricao,
+              Valor: t.valor.toFixed(2)
+            }));
 
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `relatorio_${obterMesAno(mesSelecionado).replace(' ', '_')}.csv`;
-    link.click();
-  };
+            const csv = [
+              Object.keys(dados[0]).join(','),
+              ...dados.map(row => Object.values(row).join(','))
+            ].join('\n');
 
-  const transacoesFiltradas = transacoes.filter(t => 
-    t.data.startsWith(mesSelecionado)
-  );
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `relatorio_${obterMesAno(mesSelecionado).replace(' ', '_')}.csv`;
+            link.click();
+          };
 
-  const totalEntradas = transacoesFiltradas
-    .filter(t => t.tipo === 'entrada')
-    .reduce((acc, t) => acc + t.valor, 0);
+          const transacoesFiltradas = transacoes.filter(t => 
+            t.data.startsWith(mesSelecionado)
+          );
 
-  const totalSaidas = transacoesFiltradas
-    .filter(t => t.tipo === 'saida')
-    .reduce((acc, t) => acc + t.valor, 0);
+          const totalEntradas = transacoesFiltradas
+            .filter(t => t.tipo === 'entrada')
+            .reduce((acc, t) => acc + t.valor, 0);
 
-  const saldo = totalEntradas - totalSaidas;
+          const totalSaidas = transacoesFiltradas
+            .filter(t => t.tipo === 'saida')
+            .reduce((acc, t) => acc + t.valor, 0);
 
-  const formatarMoeda = (valor) => {
-    return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  };
+          const saldo = totalEntradas - totalSaidas;
 
-  const obterMesAno = (mesAno) => {
-    const [ano, mes] = mesAno.split('-');
-    const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
-                   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-    return `${meses[parseInt(mes) - 1]} ${ano}`;
-  };
+          const formatarMoeda = (valor) => {
+            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+          };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold text-green-800">
-              Sítio Escola de Cura - Financeiro
-            </h1>
-            <DollarSign className="w-10 h-10 text-green-600" />
-          </div>
+          const obterMesAno = (mesAno) => {
+            const [ano, mes] = mesAno.split('-');
+            const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                           'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            return `${meses[parseInt(mes) - 1]} ${ano}`;
+          };
 
-          <div className="grid md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-green-100">Entradas</span>
-                <TrendingUp className="w-6 h-6" />
-              </div>
-              <div className="text-3xl font-bold">{formatarMoeda(totalEntradas)}</div>
-            </div>
+          return (
+            <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-4">
+              <div className="max-w-6xl mx-auto">
+                <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h1 className="text-3xl font-bold text-green-800">
+                      Sítio Escola de Cura - Financeiro
+                    </h1>
+                    <DollarSign />
+                  </div>
 
-            <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-red-100">Saídas</span>
-                <TrendingDown className="w-6 h-6" />
-              </div>
-              <div className="text-3xl font-bold">{formatarMoeda(totalSaidas)}</div>
-            </div>
+                  <div className="grid md:grid-cols-3 gap-4 mb-6">
+                    <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-green-100">Entradas</span>
+                        <TrendingUp />
+                      </div>
+                      <div className="text-3xl font-bold">{formatarMoeda(totalEntradas)}</div>
+                    </div>
 
-            <div className={`bg-gradient-to-br ${saldo >= 0 ? 'from-blue-500 to-blue-600' : 'from-orange-500 to-orange-600'} rounded-xl p-6 text-white`}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-blue-100">Saldo</span>
-                <DollarSign className="w-6 h-6" />
-              </div>
-              <div className="text-3xl font-bold">{formatarMoeda(saldo)}</div>
-            </div>
-          </div>
+                    <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-red-100">Saídas</span>
+                        <TrendingDown />
+                      </div>
+                      <div className="text-3xl font-bold">{formatarMoeda(totalSaidas)}</div>
+                    </div>
 
-          <div className="bg-gray-50 rounded-xl p-6 mb-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Adicionar Transação</h2>
-            
-            <div className="grid md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
-                <select 
-                  value={tipo}
-                  onChange={(e) => {
-                    setTipo(e.target.value);
-                    setCategoria('');
-                  }}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                >
-                  <option value="entrada">Entrada</option>
-                  <option value="saida">Saída</option>
-                </select>
-              </div>
+                    <div className={`bg-gradient-to-br ${saldo >= 0 ? 'from-blue-500 to-blue-600' : 'from-orange-500 to-orange-600'} rounded-xl p-6 text-white`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span>Saldo</span>
+                        <DollarSign />
+                      </div>
+                      <div className="text-3xl font-bold">{formatarMoeda(saldo)}</div>
+                    </div>
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
-                <select 
-                  value={categoria}
-                  onChange={(e) => setCategoria(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                >
-                  <option value="">Selecione...</option>
-                  {(tipo === 'entrada' ? categoriasEntrada : categoriasSaida).map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-              </div>
+                  <div className="bg-gray-50 rounded-xl p-6 mb-6">
+                    <h2 className="text-xl font-bold text-gray-800 mb-4">Adicionar Transação</h2>
+                    
+                    <div className="grid md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+                        <select 
+                          value={tipo}
+                          onChange={(e) => {
+                            setTipo(e.target.value);
+                            setCategoria('');
+                          }}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        >
+                          <option value="entrada">Entrada</option>
+                          <option value="saida">Saída</option>
+                        </select>
+                      </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
-                <input
-                  type="text"
-                  value={descricao}
-                  onChange={(e) => setDescricao(e.target.value)}
-                  placeholder="Ex: Cliente João Silva"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
-              </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
+                        <select 
+                          value={categoria}
+                          onChange={(e) => setCategoria(e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        >
+                          <option value="">Selecione...</option>
+                          {(tipo === 'entrada' ? categoriasEntrada : categoriasSaida).map(cat => (
+                            <option key={cat} value={cat}>{cat}</option>
+                          ))}
+                        </select>
+                      </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Valor (R$)</label>
-                <input
-                  type="number"
-                  value={valor}
-                  onChange={(e) => setValor(e.target.value)}
-                  placeholder="0.00"
-                  step="0.01"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
-              </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                        <input
+                          type="text"
+                          value={descricao}
+                          onChange={(e) => setDescricao(e.target.value)}
+                          placeholder="Ex: Cliente João Silva"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        />
+                      </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Data</label>
-                <input
-                  type="date"
-                  value={data}
-                  onChange={(e) => setData(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
-              </div>
-            </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Valor (R$)</label>
+                        <input
+                          type="number"
+                          value={valor}
+                          onChange={(e) => setValor(e.target.value)}
+                          placeholder="0.00"
+                          step="0.01"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        />
+                      </div>
 
-            <button
-              onClick={adicionarTransacao}
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors"
-            >
-              <Plus className="w-5 h-5" />
-              Adicionar Transação
-            </button>
-          </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Data</label>
+                        <input
+                          type="date"
+                          value={data}
+                          onChange={(e) => setData(e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
 
-          <div className="bg-gray-50 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-              <h2 className="text-xl font-bold text-gray-800">Relatório Mensal</h2>
-              <div className="flex items-center gap-3">
-                {transacoesFiltradas.length > 0 && (
-                  <button
-                    onClick={exportarCSV}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 transition-colors"
-                  >
-                    <Download className="w-4 h-4" />
-                    Exportar CSV
-                  </button>
-                )}
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-gray-600" />
-                  <input
-                    type="month"
-                    value={mesSelecionado}
-                    onChange={(e) => setMesSelecionado(e.target.value)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
+                    <button
+                      onClick={adicionarTransacao}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                    >
+                      <Plus />
+                      Adicionar Transação
+                    </button>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+                      <h2 className="text-xl font-bold text-gray-800">Relatório Mensal</h2>
+                      <div className="flex items-center gap-3">
+                        {transacoesFiltradas.length > 0 && (
+                          <button
+                            onClick={exportarCSV}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 transition-colors"
+                          >
+                            <Download />
+                            Exportar CSV
+                          </button>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <Calendar />
+                          <input
+                            type="month"
+                            value={mesSelecionado}
+                            onChange={(e) => setMesSelecionado(e.target.value)}
+                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mb-4 text-center text-lg font-semibold text-gray-700">
+                      {obterMesAno(mesSelecionado)}
+                    </div>
+
+                    {transacoesFiltradas.length === 0 ? (
+                      <p className="text-center text-gray-500 py-8">Nenhuma transação neste mês</p>
+                    ) : (
+                      <div className="space-y-3 max-h-96 overflow-y-auto">
+                        {transacoesFiltradas.sort((a, b) => new Date(b.data) - new Date(a.data)).map(t => (
+                          <div key={t.id} className="bg-white rounded-lg p-4 shadow-sm border border-gray-200 flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-1">
+                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                  t.tipo === 'entrada' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                }`}>
+                                  {t.tipo === 'entrada' ? 'Entrada' : 'Saída'}
+                                </span>
+                                <span className="text-sm text-gray-500">{t.categoria}</span>
+                              </div>
+                              <div className="font-semibold text-gray-800">{t.descricao}</div>
+                              <div className="text-sm text-gray-500">
+                                {new Date(t.data + 'T00:00:00').toLocaleDateString('pt-BR')}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <div className={`text-xl font-bold ${t.tipo === 'entrada' ? 'text-green-600' : 'text-red-600'}`}>
+                                {t.tipo === 'entrada' ? '+' : '-'} {formatarMoeda(t.valor)}
+                              </div>
+                              <button
+                                onClick={() => removerTransacao(t.id)}
+                                className="text-red-500 hover:text-red-700 transition-colors"
+                              >
+                                <Trash2 />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
+          );
+        }
 
-            <div className="mb-4 text-center text-lg font-semibold text-gray-700">
-              {obterMesAno(mesSelecionado)}
-            </div>
-
-            {transacoesFiltradas.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">Nenhuma transação neste mês</p>
-            ) : (
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {transacoesFiltradas.sort((a, b) => new Date(b.data) - new Date(a.data)).map(t => (
-                  <div key={t.id} className="bg-white rounded-lg p-4 shadow-sm border border-gray-200 flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-1">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          t.tipo === 'entrada' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                        }`}>
-                          {t.tipo === 'entrada' ? 'Entrada' : 'Saída'}
-                        </span>
-                        <span className="text-sm text-gray-500">{t.categoria}</span>
-                      </div>
-                      <div className="font-semibold text-gray-800">{t.descricao}</div>
-                      <div className="text-sm text-gray-500">
-                        {new Date(t.data + 'T00:00:00').toLocaleDateString('pt-BR')}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className={`text-xl font-bold ${t.tipo === 'entrada' ? 'text-green-600' : 'text-red-600'}`}>
-                        {t.tipo === 'entrada' ? '+' : '-'} {formatarMoeda(t.valor)}
-                      </div>
-                      <button
-                        onClick={() => removerTransacao(t.id)}
-                        className="text-red-500 hover:text-red-700 transition-colors"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+        ReactDOM.render(<SistemaFinanceiro />, document.getElementById('root'));
+    </script>
+</body>
+</html>
