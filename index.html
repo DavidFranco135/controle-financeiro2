@@ -14,11 +14,9 @@
 
     <!-- Firebase SDK -->
     <script type="module">
-      // Import the functions you need from the SDKs you need
       import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-      // TODO: Add SDKs for Firebase products that you want to use
-      // https://firebase.google.com/docs/web/setup#available-libraries
-      // Your web app's Firebase configuration
+      import { getFirestore, collection, addDoc, deleteDoc, doc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+      
       const firebaseConfig = {
         apiKey: "AIzaSyDla38A4jZw0m8P1CuwIny1Hx4PuFwFBpo",
         authDomain: "controle-financeiro-sitio.firebaseapp.com",
@@ -27,8 +25,13 @@
         messagingSenderId: "687439020294",
         appId: "1:687439020294:web:5835d3db4e70e3e80b5e87"
       };
-      // Initialize Firebase
+      
       const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      
+      // Tornar disponível globalmente
+      window.firebaseDB = db;
+      window.firebaseUtils = { collection, addDoc, deleteDoc, doc, getDocs, query, orderBy };
     </script>
 
     <script type="text/babel">
@@ -42,6 +45,7 @@
         const Plus = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>;
         const Trash2 = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>;
         const Download = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
+        const RefreshCw = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>;
 
         function SistemaFinanceiro() {
           const [transacoes, setTransacoes] = useState([]);
@@ -51,6 +55,7 @@
           const [categoria, setCategoria] = useState('');
           const [data, setData] = useState(new Date().toISOString().split('T')[0]);
           const [mesSelecionado, setMesSelecionado] = useState(new Date().toISOString().slice(0, 7));
+          const [carregando, setCarregando] = useState(false);
 
           const categoriasEntrada = ['Agendamento Cliente', 'Outros'];
           const categoriasSaida = ['Produtos Piscina', 'Gasolina Roçadeira', 'Contas', 'Manutenção', 'Alimentação', 'Outros'];
@@ -59,56 +64,81 @@
             carregarDados();
           }, []);
 
-          const carregarDados = () => {
+          const carregarDados = async () => {
+            setCarregando(true);
             try {
-              const dados = localStorage.getItem('transacoes-sitio');
-              if (dados) {
-                setTransacoes(JSON.parse(dados));
-              }
+              const { collection, getDocs, query, orderBy } = window.firebaseUtils;
+              const q = query(collection(window.firebaseDB, 'transacoes'), orderBy('timestamp', 'desc'));
+              const querySnapshot = await getDocs(q);
+              
+              const dados = [];
+              querySnapshot.forEach((doc) => {
+                dados.push({ id: doc.id, ...doc.data() });
+              });
+              
+              setTransacoes(dados);
             } catch (error) {
-              console.log('Nenhum dado anterior encontrado');
+              console.error('Erro ao carregar dados:', error);
+              alert('Erro ao carregar dados do servidor');
+            } finally {
+              setCarregando(false);
             }
           };
 
-          const salvarDados = (novasTransacoes) => {
-            try {
-              localStorage.setItem('transacoes-sitio', JSON.stringify(novasTransacoes));
-            } catch (error) {
-              console.error('Erro ao salvar:', error);
-              alert('Erro ao salvar os dados!');
-            }
-          };
-
-          const adicionarTransacao = () => {
+          const adicionarTransacao = async () => {
             if (!descricao || !valor || !categoria) {
               alert('Preencha todos os campos!');
               return;
             }
 
-            const novaTransacao = {
-              id: Date.now(),
-              descricao,
-              valor: parseFloat(valor),
-              tipo,
-              categoria,
-              data
-            };
+            setCarregando(true);
+            try {
+              const { collection, addDoc } = window.firebaseUtils;
+              
+              const novaTransacao = {
+                descricao,
+                valor: parseFloat(valor),
+                tipo,
+                categoria,
+                data,
+                timestamp: Date.now()
+              };
 
-            const novasTransacoes = [...transacoes, novaTransacao];
-            setTransacoes(novasTransacoes);
-            salvarDados(novasTransacoes);
-
-            setDescricao('');
-            setValor('');
-            setCategoria('');
-            setData(new Date().toISOString().split('T')[0]);
+              const docRef = await addDoc(collection(window.firebaseDB, 'transacoes'), novaTransacao);
+              
+              setTransacoes([{ id: docRef.id, ...novaTransacao }, ...transacoes]);
+              
+              setDescricao('');
+              setValor('');
+              setCategoria('');
+              setData(new Date().toISOString().split('T')[0]);
+              
+              alert('Transação adicionada com sucesso!');
+            } catch (error) {
+              console.error('Erro ao adicionar:', error);
+              alert('Erro ao adicionar transação');
+            } finally {
+              setCarregando(false);
+            }
           };
 
-          const removerTransacao = (id) => {
-            if (confirm('Tem certeza que deseja excluir esta transação?')) {
-              const novasTransacoes = transacoes.filter(t => t.id !== id);
-              setTransacoes(novasTransacoes);
-              salvarDados(novasTransacoes);
+          const removerTransacao = async (id) => {
+            if (!confirm('Tem certeza que deseja excluir esta transação?')) {
+              return;
+            }
+
+            setCarregando(true);
+            try {
+              const { deleteDoc, doc } = window.firebaseUtils;
+              await deleteDoc(doc(window.firebaseDB, 'transacoes', id));
+              
+              setTransacoes(transacoes.filter(t => t.id !== id));
+              alert('Transação removida com sucesso!');
+            } catch (error) {
+              console.error('Erro ao remover:', error);
+              alert('Erro ao remover transação');
+            } finally {
+              setCarregando(false);
             }
           };
 
@@ -166,8 +196,24 @@
                     <h1 className="text-3xl font-bold text-green-800">
                       Sítio Escola de Cura - Financeiro
                     </h1>
-                    <DollarSign />
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={carregarDados}
+                        disabled={carregando}
+                        className="p-2 bg-green-100 hover:bg-green-200 rounded-lg transition-colors disabled:opacity-50"
+                        title="Atualizar dados"
+                      >
+                        <RefreshCw className={carregando ? 'animate-spin' : ''} />
+                      </button>
+                      <DollarSign />
+                    </div>
                   </div>
+
+                  {carregando && (
+                    <div className="mb-4 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg text-center">
+                      Sincronizando dados...
+                    </div>
+                  )}
 
                   <div className="grid md:grid-cols-3 gap-4 mb-6">
                     <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white">
@@ -207,7 +253,8 @@
                             setTipo(e.target.value);
                             setCategoria('');
                           }}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          disabled={carregando}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:opacity-50"
                         >
                           <option value="entrada">Entrada</option>
                           <option value="saida">Saída</option>
@@ -219,7 +266,8 @@
                         <select 
                           value={categoria}
                           onChange={(e) => setCategoria(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          disabled={carregando}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:opacity-50"
                         >
                           <option value="">Selecione...</option>
                           {(tipo === 'entrada' ? categoriasEntrada : categoriasSaida).map(cat => (
@@ -235,7 +283,8 @@
                           value={descricao}
                           onChange={(e) => setDescricao(e.target.value)}
                           placeholder="Ex: Cliente João Silva"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          disabled={carregando}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:opacity-50"
                         />
                       </div>
 
@@ -247,7 +296,8 @@
                           onChange={(e) => setValor(e.target.value)}
                           placeholder="0.00"
                           step="0.01"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          disabled={carregando}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:opacity-50"
                         />
                       </div>
 
@@ -257,17 +307,19 @@
                           type="date"
                           value={data}
                           onChange={(e) => setData(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          disabled={carregando}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:opacity-50"
                         />
                       </div>
                     </div>
 
                     <button
                       onClick={adicionarTransacao}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                      disabled={carregando}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Plus />
-                      Adicionar Transação
+                      {carregando ? 'Salvando...' : 'Adicionar Transação'}
                     </button>
                   </div>
 
@@ -326,7 +378,8 @@
                               </div>
                               <button
                                 onClick={() => removerTransacao(t.id)}
-                                className="text-red-500 hover:text-red-700 transition-colors"
+                                disabled={carregando}
+                                className="text-red-500 hover:text-red-700 transition-colors disabled:opacity-50"
                               >
                                 <Trash2 />
                               </button>
