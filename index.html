@@ -12,6 +12,25 @@
 <body>
     <div id="root"></div>
 
+    <!-- Firebase SDK -->
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyDla38A4jZw0m8P1CuwIny1Hx4PuFwFBpo",
+        authDomain: "controle-financeiro-sitio.firebaseapp.com",
+        projectId: "controle-financeiro-sitio",
+        storageBucket: "controle-financeiro-sitio.firebasestorage.app",
+        messagingSenderId: "687439020294",
+        appId: "1:687439020294:web:5835d3db4e70e3e80b5e87"
+      };
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+    </script>
+
     <script type="text/babel">
         const { useState, useEffect } = React;
         
